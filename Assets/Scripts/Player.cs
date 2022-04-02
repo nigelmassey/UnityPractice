@@ -25,7 +25,7 @@ public class Player : MonoBehaviour
     {
         var horizontalMovement = Input.GetAxis("Horizontal");
         var verticalMovement = Input.GetAxis("Vertical");
-        var jumpKeyPressed = Input.GetKeyDown(KeyCode.Space);
+        var jumpKeyPressed = Input.GetButtonDown("Jump");
 
         isInAir = Physics.OverlapSphere(GroundCheckObject.position, playerMaskRadius, playerMask).Length == 0;
         if (!isInAir && velocity.y < 0)
