@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class Player : MonoBehaviour
 {
@@ -14,6 +15,22 @@ public class Player : MonoBehaviour
     private Vector3 direction;
     private bool isInAir = false;    
     private Vector3 velocity;
+    private PlayerControls playerControls;
+
+    private void Awake()
+    {
+        playerControls = new PlayerControls();
+    }
+
+    private void OnEnable()
+    {
+        playerControls.Enable();
+    }
+
+    private void OnDisable()
+    {
+        playerControls.Disable();
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -23,9 +40,8 @@ public class Player : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        var horizontalMovement = Input.GetAxis("Horizontal");
-        var verticalMovement = Input.GetAxis("Vertical");
-        var jumpKeyPressed = Input.GetButtonDown("Jump");
+        var move = playerControls.Player.Move.ReadValue<Vector2>();
+        var jumpKeyPressed = playerControls.Player.Jump.IsPressed();
 
         isInAir = Physics.OverlapSphere(GroundCheckObject.position, playerMaskRadius, playerMask).Length == 0;
         if (!isInAir && velocity.y < 0)
@@ -36,7 +52,7 @@ public class Player : MonoBehaviour
             velocity.y = 2f;
         }
 
-        direction = new Vector3(horizontalMovement, velocity.y, verticalMovement);
+        direction = new Vector3(move.x, velocity.y, move.y);
     }
 
     private void FixedUpdate()
@@ -50,4 +66,5 @@ public class Player : MonoBehaviour
 
         characterController.Move(velocity * Time.deltaTime);
     }
+
 }
