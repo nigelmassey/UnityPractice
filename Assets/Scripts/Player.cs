@@ -6,14 +6,12 @@ using UnityEngine.InputSystem;
 public class Player : MonoBehaviour
 {
     [SerializeField] private CharacterController characterController;
-    [SerializeField] private float speed = 3f;
-    [SerializeField] private float playerMaskRadius = 0.07f;
+    [SerializeField] private float speed = 5f;
     [SerializeField] private LayerMask playerMask;
-    [SerializeField] private float gravity = -9.81f;
-    [SerializeField] private Transform GroundCheckObject;
+    [SerializeField] private float gravity = -10f;
+    [SerializeField] private Transform Camera;
 
-    private Vector3 direction;
-    private bool isInAir = false;    
+    private Vector3 moveDirection; 
     private Vector3 velocity;
     private PlayerControls playerControls;
 
@@ -41,25 +39,32 @@ public class Player : MonoBehaviour
     void Update()
     {
         var move = playerControls.Player.Move.ReadValue<Vector2>();
-        var jumpKeyPressed = playerControls.Player.Jump.IsPressed();
+        var jumpKeyPressed = playerControls.Player.Jump.WasPressedThisFrame();
 
-        isInAir = Physics.OverlapSphere(GroundCheckObject.position, playerMaskRadius, playerMask).Length == 0;
-        if (!isInAir && velocity.y < 0)
+        //isInAir = Physics.OverlapSphere(GroundCheckObject.position, playerMaskRadius, playerMask).Length == 0;
+        if (characterController.isGrounded && velocity.y < 0)
             velocity.y = 0f;
 
-        if (!isInAir && jumpKeyPressed)
+        if (characterController.isGrounded && jumpKeyPressed)
         {
-            velocity.y = 2f;
+            velocity.y = 4f;
         }
 
-        direction = new Vector3(move.x, velocity.y, move.y);
+        moveDirection = new Vector3(move.x, velocity.y, move.y);
     }
 
     private void FixedUpdate()
     {
-        if (direction.magnitude >= 0.1f)
+        if (moveDirection.magnitude >= 0.1f)
         {
-            characterController.Move(direction * speed * Time.deltaTime);
+            Vector3 movementInput = Quaternion.Euler(0, Camera.transform.eulerAngles.y, 0) * moveDirection;
+            Vector3 movementDirection = movementInput.normalized;
+
+            characterController.Move(movementDirection * speed * Time.deltaTime);
+
+            movementDirection.y = 0f;
+            Quaternion desiredRotation = Quaternion.LookRotation(movementDirection, Vector3.up);
+            transform.rotation = desiredRotation;
         }
 
         velocity.y += gravity * Time.deltaTime;
